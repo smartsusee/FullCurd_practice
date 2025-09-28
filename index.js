@@ -1,137 +1,189 @@
-const express = require('express');
+const express = require("express");
 
 const app = express();
 
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const employeeSchema = require("./controller/middleware/EmployeeSchema")
+// const employeeSchema = require("./controller/middleware/EmployeeSchema")
 
-const dotenv = require('dotenv');
+const StudentSchema = require("./controller/middleware/studentDetails");
+const dotenv = require("dotenv");
 
-const jwt = require('jsonwebtoken')
-const bcrypt = require('bcrypt');
-const router = require('./router/router');
+// const jwt = require('jsonwebtoken')
+// const bcrypt = require('bcrypt');
+// const router = require('./router/router');
+const cors = require("cors");
+app.use(cors());
+dotenv.config();
+app.use(express.json());
+// app.use("/apiHandle", router)
+mongoose
+  .connect(process.env.DB)
+  .then(() => {
+    console.log("DB is connected");
+  })
+  .catch(() => {
+    console.log("DB is not connected");
+  });
 
-dotenv.config()
-app.use(express.json())
-app.use("/apiHandle", router)
-mongoose.connect(process.env.DB)
-.then(()=>{
+app.post("/studentCreate", async (req, res) => {
+  const data = new StudentSchema({
+    ...req.body,
+  });
 
-      console.log("DB is connected");
-      
-}).
-catch(()=>{
+  let SaveData = await data.save();
 
-      console.log("DB is not connected");
-      
-})
+  res.json({ msg: "data saved successfully", SaveData });
+});
 
+app.get("/studentGet", async (req, res) => {
+  let dataget = await StudentSchema.find();
 
+  res.json(dataget);
+});
 
-app.post("/UserDataCreate", async (req , res)=>{
-    try{
-         let {name , email , password} = req.body;
-    console.log(name , email , password);
+app.put("/studentUpdate/:id", async (req, res) => {
+  let updatedata = await StudentSchema.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
 
-    let hassPassword = await bcrypt.hash(password, 7)
+  res.status(200).json({ msg: "data updated successfully", updatedata });
+});
 
-      let existingEmail = await employeeSchema.findOne({email:email})
+app.delete("/studentDelete/:id", async (req, res) => {
+  let DeleteData = await StudentSchema.findByIdAndDelete(req.params.id);
 
-      if(existingEmail) return res.status(200).json({msg:"email already exist"})
-      
-    const data = await new employeeSchema({
-     ...req.body , password:hassPassword
-    }) 
+  res.status(200).json({ msg: "data Deleted successfully", DeleteData });
+});
 
+// app.post("/UserDataCreate", async (req , res)=>{
+//     try{
+//          let {name , email , password} = req.body;
+//     console.log(name , email , password);
 
+//     let hassPassword = await bcrypt.hash(password, 7)
 
-  let SaveData =   await data.save()
+//       let existingEmail = await employeeSchema.findOne({email:email})
 
-  res.status(200).json({msg:"data reg Successfully...!" , SaveData})
-    }
-    
-    catch(err){
+//       if(existingEmail) return res.status(200).json({msg:"email already exist"})
 
+//     const data = await new employeeSchema({
+//      ...req.body , password:hassPassword
+//     })
 
-           res.status(500).json(err)
-    }
-    
+//   let SaveData =   await data.save()
 
-})
+//   res.status(200).json({msg:"data reg Successfully...!" , SaveData})
+//     }
 
+//     catch(err){
 
-app.put("/UserDataUpdate/:id", async (req, res)=>{
-    console.log(req.params.id);
-    
+//            res.status(500).json(err)
+//     }
 
-      let {id} = req.params 
-    let updatedata = await employeeSchema.findByIdAndUpdate(id , req.body, {new:true})
-
-    res.json({msg:"data updated successfully....!", updatedata})
-
-})
-app.delete("/UserDatadelete/:id", async (req, res)=>{
-    console.log(req.params.id);
-    
-
-      let {id} = req.params 
-    let deleteData = await employeeSchema.findByIdAndDelete(id)
-
-    res.json({msg:"data deleted successfully....!", deleteData})
-
-})
-
-
-// app.get("/UserDataGet", async(req , res)=>{
-
-//   let getData = await employeeSchema.find()
-
-//   res.json({getData})
 // })
 
+// app.put("/UserDataUpdate/:id", async (req, res)=>{
+//     console.log(req.params.id);
 
+//       let {id} = req.params
+//     let updatedata = await employeeSchema.findByIdAndUpdate(id , req.body, {new:true})
 
-app.post("/loginMethod" , async (req , res)=>{
+//     res.json({msg:"data updated successfully....!", updatedata})
 
-    console.log(req.body);
-    
-  try{
+// })
+// app.delete("/UserDatadelete/:id", async (req, res)=>{
+//     console.log(req.params.id);
 
-     let existingEmail = await employeeSchema.findOne({email:req.body.email})
+//       let {id} = req.params
+//     let deleteData = await employeeSchema.findByIdAndDelete(id)
 
-console.log(existingEmail);
+//     res.json({msg:"data deleted successfully....!", deleteData})
 
-if(!existingEmail) return res.status(404).json({msg:"email not found"})
+// })
 
+// async function VerifyTokenValidate(req, res , next ) {
+//   try{
 
-    let checkpassword = await bcrypt.compare(req.body.password , existingEmail.password)
+//    let Token = req.headers["authorization"].split(" ")[1]
 
-if(!checkpassword) return res.status(404).json({msg:"password not found"})
+//      if(!Token) return res.status(404).json({msg:"you'r token missing "})
 
+//       let verifytoken =  jwt.verify(Token,  process.env.ragasiyam)
 
-      let Token = await jwt.sign({ name:existingEmail.name , email:existingEmail.email }, process.env.ragasiyam , {expiresIn:"1h"})
+//       if(!verifytoken) return res.status(404).json({msg:"you'r token is invalid"})
 
+//          req.user = verifytoken
 
-    res.status(200).json({msg:"login successfully" , Token})
+//             next()
 
-      if(!token) return res.status(404).json({msg:"token not found"})
+//   }
+//   catch(err){
 
-  }
+//     res.status(500).json(err)
+//   }
+//   // console.log();
 
+// }
 
-  catch(err){
+// app.get("/UserDataGet",VerifyTokenValidate, async(req , res)=>{
 
-    res.status(500).json(err)
+//   console.log(req.user.role);
 
-  }
+//   //   if(req.user.role !== "admin"){
+//   //       res.status(500).json({msg:"you'r not admin"})
 
+//   //   }
+//   //   else{
+//   //     let getData = await employeeSchema.find()
 
-})
+//   // res.json({getData})
 
+//   //   }
+//     if(req.user.role === "admin"){
+//  let getData = await employeeSchema.find()
 
-app.listen(process.env.Port , ()=>{
+//   res.json({getData})
+//     }
+//     else{
 
-    console.log(`server running port on :${process.env.Port}`);
-    
-})
+//         res.status(500).json({msg:"you'r not admin"})
+//     }
+
+// })
+
+// app.post("/loginMethod" , async (req , res )=>{
+
+//     console.log(req.body);
+
+//   try{
+
+//      let existingEmail = await employeeSchema.findOne({email:req.body.email})
+
+// console.log(existingEmail);
+
+// if(!existingEmail) return res.status(404).json({msg:"email not found"})
+
+//     let checkpassword = await bcrypt.compare(req.body.password , existingEmail.password)
+
+// if(!checkpassword) return res.status(404).json({msg:"password not found"})
+
+//       let Token = await jwt.sign({ name:existingEmail.name , email:existingEmail.email , role:existingEmail.role}, process.env.ragasiyam , {expiresIn:"1h"})
+
+//     res.status(200).json({msg:"login successfully" , Token})
+
+//   }
+
+//   catch(err){
+
+//     res.status(500).json(err)
+
+//   }
+
+// })
+
+app.listen(process.env.Port, () => {
+  console.log(`server running port on :${process.env.Port}`);
+});
