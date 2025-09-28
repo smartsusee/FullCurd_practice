@@ -184,6 +184,6 @@ app.delete("/studentDelete/:id", async (req, res) => {
 
 // })
 
-app.listen(process.env.Port, () => {
-  console.log(`server running port on :${process.env.Port}`);
+app.listen(process.env.PORT, () => {
+  console.log(`server running port on :${process.env.PORT}`);
 });
