@@ -25,14 +25,11 @@ function App() {
   const [data, setdata] = useState([]);
   const [ref, setref] = useState(true);
 
-  console.log(process.env.REACT_APP_API_URL);
-
   function GetMethod() {
     authAxios
       .get(`/studentGet`)
       .then((res) => {
         setdata(res.data);
-        console.log(res);
       })
       .catch((err) => {
         toast.error(`${err}, !`, {
@@ -69,8 +66,6 @@ function App() {
       authAxios
         .post("/studentCreate", studentobj)
         .then((res) => {
-          console.log(res);
-
           setref(!ref);
 
           //  alert(res.data.msg)
@@ -106,8 +101,6 @@ function App() {
   };
 
   function deleteFun(item) {
-    console.log(item._id);
-
     authAxios
       .delete(`studentDelete/${item._id}`)
       .then((res) => {
@@ -143,8 +136,6 @@ function App() {
   function editFun(item) {
     setShow({ ...show, showData: true, userid: item._id });
 
-    console.log(item.Firstname, item.Lastname);
-
     setUpdateData({
       ...updateData,
       Firstname: item.Firstname,
@@ -154,10 +145,6 @@ function App() {
 
   function UpdateFunHandle(e) {
     e.preventDefault();
-
-    console.log(show.userid);
-
-    console.log(updateData);
 
     authAxios
       .put(`studentUpdate/${show.userid}`, updateData)
